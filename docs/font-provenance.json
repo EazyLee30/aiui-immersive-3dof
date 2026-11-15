@@ -1,0 +1,25 @@
+{
+  "release": "2026.11.10",
+  "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.11.10",
+  "archiveSha256": "92aa7958879fb9bbf0f8518184a9641b83dd9543397bdf5d1c53cb6cd75c111a",
+  "fonts": [
+    {
+      "upstreamFile": "fusion-pixel-12px-monospaced-zh_hans.otf",
+      "localFile": "assets/starter/assets/fonts/FusionPixel12.otf",
+      "bytes": 5103844,
+      "sha256": "1b71a1e61f71da89455790fc585f88b2aedbae608f1785c8eb6ec104c43ebd7e",
+      "sample": "回中校准速度音量場景選擇確認返回0123456789±·",
+      "missing": [],
+      "mappedGlyphs": 37939
+    },
+    {
+      "upstreamFile": "fusion-pixel-12px-monospaced-zh_tw.otf",
+      "localFile": "assets/fonts/FusionPixel12Traditional.otf",
+      "bytes": 5122428,
+      "sha256": "d5df41159870fd1e04f58f9558431442876d151b13cb83035cca29d6be312291",
+      "sample": "回中校准速度音量場景選擇確認返回0123456789±·",
+      "missing": [],
+      "mappedGlyphs": 37939
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion":1,
+  "agentName":"Spatial Scene",
+  "agentDesc":"Fixed-eye 3DoF reference scene with head selection and temple confirmation.",
+  "agentPrompt":"Open pages/index/index when the user asks to try this spatial scene.",
+  "agentLogo":"",
+  "nativeVersion":"0.1.0",
+  "inkVersion":">=0.18.0",
+  "permissions":[]
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "agentId": null,
+  "sourceVersion": null,
+  "platformVersion": null,
+  "storeVersion": null,
+  "requestedState": "draft",
+  "observedState": "local-only",
+  "region": null,
+  "artifact": {"path": null, "sha256": null},
+  "icon": {"path": null, "url": null, "alphaChecked": false},
+  "preview": {"images": [], "video": null, "seconds": null, "hasAudio": null, "captureKind": null},
+  "authorizationContext": null,
+  "submittedAt": null,
+  "approvedAt": null,
+  "publishedAt": null,
+  "listingUrl": null,
+  "proof": null,
+  "observedAt": null
+}

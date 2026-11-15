@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": null,
+  "eye": [0, 0, 0],
+  "axes": {"right": "+X", "up": "+Y", "forward": "-Z"},
+  "projection": {"kind": "perspective", "horizontalFovDegrees": null, "verticalFovDegrees": null},
+  "environment": {"kind": "cubemap", "faceOrder": ["front", "right", "back", "left", "up", "down"], "faceSize": null, "axisTestPassed": false},
+  "subject": {"alpha": true, "cropUV": [0, 0, 1, 1], "frames": null, "fps": null, "loopSeconds": null},
+  "color": {"viewTransform": null, "monoTransform": null},
+  "runtimeCoverageDegrees": {"yaw": null, "pitch": null},
+  "limitations": ["Fixed eye only; no positional parallax implied."]
+}

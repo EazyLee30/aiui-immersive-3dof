@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "project": "replace-with-project-name",
+  "sourceRevision": null,
+  "target": {"model": null, "hostVersion": null, "displayMode": null, "viewport": null},
+  "checks": [
+    {"kind": "static", "name": "AIUI source check", "status": "not-run", "artifact": null},
+    {"kind": "simulation", "name": "geometry and input", "status": "not-run", "artifact": null},
+    {"kind": "device", "name": "IMU and frame cost", "status": "not-run", "artifact": null},
+    {"kind": "wearer", "name": "physical gestures and comfort", "status": "not-run", "artifact": null},
+    {"kind": "cloud", "name": "saved material and release state", "status": "not-run", "artifact": null}
+  ],
+  "knownLimitations": [],
+  "observedAt": null
+}

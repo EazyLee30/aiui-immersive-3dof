@@ -1,0 +1,6 @@
+{
+  "pages": ["pages/index/index"],
+  "window": {"navigationBarTitleText":"Spatial Scene","viewport":{"width":"device-width"}},
+  "fonts": [{"family":"FusionPixel","src":"assets/fonts/FusionPixel12.otf","weight":400,"style":"normal"}],
+  "permissions": []
+}

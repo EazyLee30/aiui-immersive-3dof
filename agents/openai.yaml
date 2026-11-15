@@ -1,0 +1,4 @@
+interface:
+  display_name: "AIUI Immersive 3DoF"
+  short_description: "Build spatial AIUI scenes, record sound, and ship."
+  default_prompt: "Use $aiui-immersive-3dof to build and verify an immersive AIUI experience, then prepare the authorized release."
