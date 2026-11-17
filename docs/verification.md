@@ -14,6 +14,16 @@ English, Simplified Chinese and Traditional Chinese READMEs plus the version bad
 
 An independent planning pass used a different 12-scene app with 220 MiB estimated RGBA, unknown firmware and no native audio evidence. It correctly deferred cache sizing, disposal strategy and buffer duration pending measurements, and did not equate zero app underruns with sound continuity. It identified an ambiguous helper scope: the entrypoint now explicitly says this repository's tests/package checker do not validate the user's AIX. Native Worker/player API details still require the target's installed contracts. This was a read-only planning check, not a new device run.
 
+## 2026-11-17 · application framework reference
+
+Added [references/framework.md](../references/framework.md), a module map and contract set for a complete
+application: page ownership, pose input, the scene pipeline, draw/hit parity, mode ownership, the single audio
+owner with bounded PCM feeding, persistence, frame cadence and a symptom-to-suspect table. It is written as a
+generic shell; the starter code is unchanged and remains the minimum single-scene instance.
+
+Validation for this documentation-only addition: **17/17 behavior tests passed** and the package/link/privacy
+checker passed for **52 files**. No AIX packaging, native run or device check was repeated, and none is claimed.
+
 ## Executed locally
 
 Environment: Node.js 24.15.0, Python 3.13.3, official `@yodaos-pkg/aix-cli` 0.11.0, installed FFmpeg/ffprobe. The repository declares Node 20+ and has no npm runtime dependency installation step.

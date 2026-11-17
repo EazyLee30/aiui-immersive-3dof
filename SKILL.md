@@ -11,6 +11,7 @@ Turn a spatial idea into an inspectable AIUI application, a truthful demonstrati
 
 | Work | Read |
 | --- | --- |
+| Assemble a whole application: state, saves, scene pipeline, audio owner | [Application framework](references/framework.md) |
 | New project or runtime port | [Runtime contract](references/runtime-contract.md) |
 | Fixed-eye scene, projection, recenter, horizontal surface | [Spatial design](references/spatial-design.md) |
 | IMU, temple gestures, menu, cleanup | [Input and lifecycle](references/input-lifecycle.md) |
@@ -24,6 +25,8 @@ Turn a spatial idea into an inspectable AIUI application, a truthful demonstrati
 ## Establish the project contract
 
 Inspect the existing project and prior decisions before changing it. Record the target device/host version, viewport, coordinate conventions, scene coverage, interaction map, font choice, and requested delivery state. Use local context before asking for missing information. Use an independent project directory for a new work; preserve existing source and version snapshots.
+
+For an application rather than a single scene, start from the [application framework](references/framework.md): one page, one canvas, one loop and one audio owner, with state, saves and the scene pipeline assigned to named modules.
 
 Choose the rendering method from actual target capabilities. A fixed-eye panorama plus transparent animation layers may be a good fit for limited Canvas hosts. Real-time 3D is appropriate when verified capabilities and the product's occlusion, lighting, or movement needs justify it. Do not label baked layers as real-time mesh rendering, positional tracking, or stereoscopic depth.
 

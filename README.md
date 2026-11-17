@@ -64,6 +64,7 @@ Add `--font-locale zh-TW` for Taiwan Traditional-Chinese glyph forms; the defaul
 
 | Stage | What you get |
 | --- | --- |
+| **00 — Assemble the shell** | [Application framework: modules, contracts, one frame](references/framework.md) |
 | **01 — Define the world** | [Runtime contract](references/runtime-contract.md) · [Spatial design](references/spatial-design.md) |
 | **02 — Own the input** | [IMU, temple gestures and lifecycle](references/input-lifecycle.md) |
 | **03 — Shape the image** | [Blender baking, CJK typography and alpha-safe icons](references/art-and-typography.md) |

@@ -64,6 +64,7 @@ python3 "$SKILL_DIR/scripts/init_project.py" ./my-spatial-scene \
 
 | 阶段 | 内容 |
 | --- | --- |
+| **00 — 搭好外壳** | [应用框架：模块边界、契约与单帧流程](references/framework.md) |
 | **01 — 定义空间** | [运行时约定](references/runtime-contract.md) · [空间设计](references/spatial-design.md) |
 | **02 — 分配交互** | [IMU、镜腿手势与生命周期](references/input-lifecycle.md) |
 | **03 — 打磨画面** | [Blender 烘焙、中文像素字与透明图标](references/art-and-typography.md) |
