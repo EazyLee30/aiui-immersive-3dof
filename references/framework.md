@@ -31,7 +31,8 @@ sensor ──► pose ──► view matrix A,b ──► renderer ──► {ta
 | `lib/pose.js` | Quaternion normalize, absolute + gyro fusion, anchor, `device = A·sceneLocal + b` | Knowing about scenes or UI |
 | `lib/render.js` | Decode/publish/release, projection, draw order, `{targets, hit, angles, faces}` | Input gestures, persistence |
 | `lib/surface.js` | World geometry constants, projected polygons, batched draw | State mutation |
-| `lib/gaze.js` | Candidate/focus/latch timer, point-in-polygon | Opening menus, saving |
+| `lib/gaze.js` | Candidate/focus/latch timer, painted gate, point-in-polygon | Opening menus, saving |
+| `lib/text.js` | Fit a label into a projected quad, rotate into it, drop it when unreadable | Drawing outside its target |
 | `lib/state.js` | Pure `edit(state, action) → changedField`, menu item list, save shape | I/O, timers, sensors |
 | `lib/store.js` | Debounced durable writes, validation, checksum, flush | Rendering, audio |
 | `lib/audio.js` | Transport: pattern/tempo/volume, priming, metrics, the single player | Canvas, state ownership |
@@ -40,6 +41,9 @@ sensor ──► pose ──► view matrix A,b ──► renderer ──► {ta
 
 An imported scene module is data plus loaders. If a scene module starts importing renderer internals, the
 directory is a second application and will drift.
+
+The map is by role, not by filename: the starter carries the same roles as `spatial.js`, `scene.js`,
+`input.js`, `text.js` and `store.js`, and folds state into the page because one scene does not need more.
 
 ## One frame
 
@@ -58,6 +62,17 @@ tick(now):
 Cadence is `setTimeout(max(1, 33 - elapsed))`, not `requestAnimationFrame`, and never one timer per module.
 Reference values: 480×352, focal 1000 (≈27° horizontal), 33 ms tick, 400 ms pose freshness, 100 ms focus
 stability, 850 ms dwell, 650 ms long hold.
+
+Three of these contracts are implemented in the starter rather than only described here:
+
+| Contract | Starter implementation | Test that holds it |
+| --- | --- | --- |
+| Draw/hit parity, gaze guards, painted gate, edge grace | `assets/starter/lib/input.js` | `tests/starter-framework.test.mjs`, `tests/spatial-input.test.mjs` |
+| Label fitted to a projected quad | `assets/starter/lib/text.js` | `tests/starter-framework.test.mjs` |
+| Dual-slot, verified persistence | `assets/starter/lib/store.js` | `tests/starter-framework.test.mjs`, `tests/starter-page.test.mjs` |
+
+The starter page wires all three: it restores before the first real frame, calls `painted()` after the flush,
+passes the enlarged hit to the gaze machine, and flushes on hide/unload.
 
 ## Contracts
 
@@ -92,11 +107,25 @@ Hit-test the same projected polygon that was drawn, in screen space, at the reti
 acceptable only when it provably selects the same surface the user sees. Decide near-plane behavior once:
 clip deliberately or reject the whole quad — never let invisible geometry win a hit.
 
+Text is part of that geometry: fit it into the drawn quad, not with `maxWidth`. A label that cannot reach a
+readable scale is dropped rather than drawn over the edge, because a heading rotated into a narrowing panel
+overflows horizontally *and* vertically. See `assets/starter/lib/text.js`.
+
 ### 5. Mode owns input
 
 A frame-locked menu returns zero gaze targets and the loop skips gaze updates; scroll and index change only on
 synthetic swipe actions. Mode changes reset candidate, focus, latch and progress. Consume the release that
 follows a long hold, and deduplicate host repeats without merging distinct swipes.
+
+Dwell needs four separate guarantees, and dropping any one of them makes the ring lie:
+
+- a pose older than ~250 ms, or a frame gap that long, restarts the timer instead of completing it;
+- a brief edge miss may hold the same candidate, but the held time is subtracted, so tolerance never shortens
+  the dwell;
+- with a painted gate, only a frame that reached the display may activate;
+- the latch requires looking away before the same target can fire again.
+
+`assets/starter/lib/input.js` implements all four; test them after any change to the loop cadence.
 
 ### 6. Audio has one owner
 
@@ -112,6 +141,11 @@ A small explicit schema, validated on load and on save; checksum plus generation
 write leaves the previous commit intact; debounce ~350 ms with a ~900 ms ceiling; `flush()` before exit and
 refuse to exit silently if the flush failed. Restore before the first real frame and draw a loading frame
 instead of a black scene.
+
+`assets/starter/lib/store.js` is that minimum: alternate slots, `close()` then readback, generation check,
+coalesced saves, and an explicit failure when OPFS or the payload is unusable. A save is never acknowledged
+before the readback matches. Add a migration path when the schema changes; a checksum match proves integrity,
+not compatibility.
 
 ## Directory skeleton
 

@@ -14,15 +14,33 @@ English, Simplified Chinese and Traditional Chinese READMEs plus the version bad
 
 An independent planning pass used a different 12-scene app with 220 MiB estimated RGBA, unknown firmware and no native audio evidence. It correctly deferred cache sizing, disposal strategy and buffer duration pending measurements, and did not equate zero app underruns with sound continuity. It identified an ambiguous helper scope: the entrypoint now explicitly says this repository's tests/package checker do not validate the user's AIX. Native Worker/player API details still require the target's installed contracts. This was a read-only planning check, not a new device run.
 
-## 2026-11-17 · application framework reference
+## 2026-11-17 · application framework and starter contracts
 
 Added [references/framework.md](../references/framework.md), a module map and contract set for a complete
 application: page ownership, pose input, the scene pipeline, draw/hit parity, mode ownership, the single audio
 owner with bounded PCM feeding, persistence, frame cadence and a symptom-to-suspect table. It is written as a
-generic shell; the starter code is unchanged and remains the minimum single-scene instance.
+generic shell, names no project, and carries no copied asset or identifier.
 
-Validation for this documentation-only addition: **17/17 behavior tests passed** and the package/link/privacy
-checker passed for **52 files**. No AIX packaging, native run or device check was repeated, and none is claimed.
+Three contracts are now code in the starter rather than prose only, and the page wires all three:
+
+| Contract | Implementation | Behavior held by test |
+| --- | --- | --- |
+| Label fitted to the drawn quad | `assets/starter/lib/text.js` | Fitted boxes stay inside their projected cell across 60 pose/roll combinations; unreadable targets draw nothing |
+| Gaze continuity, edge grace, painted gate | `assets/starter/lib/input.js` | A 500 ms frame or pose gap restarts the dwell; tolerance holds the candidate while subtracting held time; activation requires a presented frame |
+| Dual-slot verified save | `assets/starter/lib/store.js` | Readback before acknowledgement; one damaged slot falls back to the older commit; interrupted write keeps the previous record; rapid edits coalesce |
+
+The page restores before its first real frame, calls `painted()` after the canvas flush, passes the enlarged hit
+to the gaze machine, and flushes on hide/unload.
+
+Validation for this change: `node --test tests/*.test.mjs` → **31/31 passed** (14 new), and the
+package/link/privacy checker passed for **55 files**. An offscreen render of the starter at neutral, 34° and 62°
+roll produced no label outside its target and no unbounded coordinate. That render used `@napi-rs/canvas`
+locally, not the official runtime: the AIX CLI is not installed on this machine's PATH, so no `aix check`,
+packaging or device run was performed for this change, and none is claimed.
+
+The dwell contract changed deliberately: continuity now requires pose and frame cadence, so an 849 ms jump into
+a target no longer completes a ring. The existing threshold test steps at 50 ms instead; the new guard has its
+own regression test.
 
 ## Executed locally
 

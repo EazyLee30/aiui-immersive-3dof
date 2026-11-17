@@ -30,7 +30,7 @@ For an application rather than a single scene, start from the [application frame
 
 Choose the rendering method from actual target capabilities. A fixed-eye panorama plus transparent animation layers may be a good fit for limited Canvas hosts. Real-time 3D is appropriate when verified capabilities and the product's occlusion, lighting, or movement needs justify it. Do not label baked layers as real-time mesh rendering, positional tracking, or stereoscopic depth.
 
-The bundled [starter](assets/starter) is a small **480×352 monochrome reference**, with a forward portal, horizontal pad, native CJK font and input adapter. It is not a universal device specification or a finished product. Instantiate without overwriting existing work:
+The bundled [starter](assets/starter) is a small **480×352 monochrome reference**, with a forward portal, horizontal pad, native CJK font, input adapter, a two-slot save and text fitted to each projected quad. It is not a universal device specification or a finished product. Instantiate without overwriting existing work:
 
 ```sh
 python3 scripts/init_project.py /absolute/new-project --name "My Spatial Scene"

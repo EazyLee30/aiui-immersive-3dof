@@ -13,7 +13,13 @@ test('desk is horizontal and each projected center hits the same cell under roll
 });
 test('only fresh poses permit recenter or world confirmation',()=>{const c=createInput();assert.equal(c.recenter(10),false);c.sample(identity,100);c.target('x',100);c.target('x',201);assert.equal(c.confirm(201).id,'x');assert.equal(c.confirm(500),null);assert.equal(c.recenter(500),false);});
 test('menu head motion changes neither selected row nor scroll offset',()=>{const c=createInput({visibleRows:1});c.sample(identity,0);c.open();c.swipe(1);c.swipe(1);const before=[c.state.menuIndex,c.state.menuTop];for(let i=0;i<200;i++){c.sample(fromAxis([1,0,0],i%70-35),i);assert.equal(c.target('cell:'+i,i),null);assert.deepEqual([c.state.menuIndex,c.state.menuTop],before);}});
-test('dwell triggers once at the actual threshold and looking away rearms it',()=>{const c=createInput();c.state.dwell=true;const visit=(id,t)=>{c.sample(identity,t);return c.target(id,t);};assert.equal(visit('a',0),null);assert.equal(visit('a',849),null);assert.equal(visit('a',850).id,'a');assert.equal(visit('a',1700),null);visit(null,1800);visit('a',1900);assert.equal(visit('a',2750).id,'a');});
+test('dwell triggers once at the actual threshold and looking away rearms it',()=>{const c=createInput();c.state.dwell=true;const visit=(id,t)=>{c.sample(identity,t);return c.target(id,t);};
+ for(let t=0;t<850;t+=50)assert.equal(visit('a',t),null);
+ assert.equal(visit('a',850).id,'a');
+ for(let t=900;t<=1300;t+=50)assert.equal(visit('a',t),null);
+ visit(null,1350);
+ for(let t=1400;t<2250;t+=50)assert.equal(visit('a',t),null);
+ assert.equal(visit('a',2250).id,'a');});
 test('moving to a new candidate immediately clears old focus',()=>{const c=createInput();c.sample(identity,0);c.target('a',0);c.target('a',120);assert.equal(c.state.focus,'a');c.target('b',130);assert.equal(c.confirm(130),null);});
 test('wake opens menu but its following release cannot confirm',()=>{let t=0,calls=[];const c=createInput(),k=createKeys(c,{now:()=>t,onAction:a=>calls.push(a)});k.wake({preventDefault(){}});t=200;k.up({code:'Enter'});assert(c.state.menu);assert.equal(calls.length,0);t=600;k.up({code:'Enter'});assert.equal(c.state.menu,false);assert.equal(calls[0].kind,'continue');});
 test('long hold and page cleanup cancel timers without accidental activation',()=>{let fn=null,cleared=0,calls=0;const c=createInput(),k=createKeys(c,{setTimer:f=>{fn=f;return 1;},clearTimer:()=>{cleared++;},onAction:()=>calls++});k.down({code:'Enter'});fn();k.up({code:'Enter'});assert(c.state.menu);assert.equal(calls,0);k.down({code:'Enter'});k.dispose();assert.equal(cleared,1);c.suspend();assert.equal(c.state.menu,false);assert.equal(c.fresh(1),false);});

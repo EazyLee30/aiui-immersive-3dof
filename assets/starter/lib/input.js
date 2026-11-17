@@ -1,26 +1,54 @@
 import {normalizeQuaternion} from './spatial.js';
 
-export function createInput({freshMs=400,focusMs=100,dwellMs=850,visibleRows=3}={}) {
+/**
+ * Gaze, dwell and menu ownership.
+ *
+ * Invariants this state machine is responsible for:
+ *  - a pose older than `freshMs` cannot confirm or recenter;
+ *  - a frame gap or sample gap longer than `poseGapMs` breaks gaze continuity,
+ *    because a stall is not evidence of continuous looking;
+ *  - an enlarged hit may hold the previous target through a brief edge wobble,
+ *    but time spent there is subtracted, so tolerance never shortens the dwell;
+ *  - with `requirePainted`, a target is only activated by a frame that was
+ *    actually presented since the previous evaluation.
+ */
+export function createInput({freshMs=400,focusMs=100,dwellMs=850,visibleRows=3,requirePainted=false,poseGapMs=250,graceMs=120}={}) {
   const s={q:[0,0,0,1],anchor:null,readingAt:null,menu:false,menuIndex:0,menuTop:0,
-    candidate:null,focus:null,since:0,latched:null,progress:0,dwell:false};
+    candidate:null,focus:null,since:0,latched:null,progress:0,dwell:false,
+    lastNow:0,painted:false,miss:0};
   const items=()=>['continue','recenter','dwell'];
   const fresh=now=>s.readingAt!==null && now>=s.readingAt && now-s.readingAt<freshMs;
-  function reset(){s.candidate=null;s.focus=null;s.latched=null;s.progress=0;}
+  function reset(){s.candidate=null;s.focus=null;s.latched=null;s.progress=0;s.miss=0;}
   function close(){s.menu=false;reset();}
   return {
     state:s,items,fresh,
     sample(q,now){const value=normalizeQuaternion(q);if(!value||!Number.isFinite(now))return false;s.q=value;s.readingAt=now;if(!s.anchor)s.anchor=value.slice();return true;},
+    /** Call after the frame reached the display; harmless when not required. */
+    painted(){s.painted=true;},
     open(){s.menu=true;s.menuIndex=0;s.menuTop=0;reset();},
     close,
     swipe(direction){if(!s.menu)return false;s.menuIndex=(s.menuIndex+Math.sign(direction)+items().length)%items().length;s.menuTop=Math.max(0,Math.min(items().length-visibleRows,s.menuIndex-1));reset();return true;},
     recenter(now){if(!fresh(now))return false;s.anchor=s.q.slice();close();return true;},
-    target(id,now){
-      if(s.menu||!fresh(now)){reset();return null;}
-      if(id!==s.candidate){s.candidate=id;s.since=now;s.focus=null;s.progress=0;if(id!==s.latched)s.latched=null;}
+    /**
+     * @param id   exactly hit target id, or null
+     * @param now  monotonic milliseconds
+     * @param near id under the enlarged target area, or null
+     */
+    target(id,now,near=null){
+      if(s.menu||!fresh(now)){reset();s.painted=false;return null;}
+      const painted=!requirePainted||s.painted;s.painted=false;
+      const dt=s.lastNow?Math.max(0,now-s.lastNow):0;s.lastNow=now;
+      if(dt>poseGapMs||now-s.readingAt>poseGapMs){reset();return null;}
+      if(id!==s.candidate){
+        // Hold the settling target across a brief edge miss without granting time.
+        if(id===null&&near&&near===s.candidate&&s.miss+dt<=graceMs){s.miss+=dt;s.since+=dt;return null;}
+        s.candidate=id;s.since=now;s.focus=null;s.progress=0;s.miss=0;if(id!==s.latched)s.latched=null;
+      }
+      s.miss=0;
       if(!id){s.focus=null;return null;}
       if(now-s.since>=focusMs)s.focus=id;
       s.progress=Math.min(1,(now-s.since)/dwellMs);
-      if(s.dwell&&s.progress>=1&&s.latched!==id){s.latched=id;return{kind:'activate',id};}
+      if(s.dwell&&painted&&s.progress>=1&&s.latched!==id){s.latched=id;return{kind:'activate',id};}
       return null;
     },
     confirm(now){
@@ -32,7 +60,7 @@ export function createInput({freshMs=400,focusMs=100,dwellMs=850,visibleRows=3}=
       return fresh(now)&&s.focus?{kind:'activate',id:s.focus}:null;
     },
     back(){if(!s.menu)return false;close();return true;},
-    suspend(){s.readingAt=null;close();}
+    suspend(){s.readingAt=null;s.lastNow=0;s.painted=false;close();}
   };
 }
 

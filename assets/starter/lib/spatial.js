@@ -38,9 +38,26 @@ export function inside(x,y,polygon) {
   }
   return hit;
 }
-export function hitTest(targets,x=PROFILE.width/2,y=PROFILE.height/2) {
-  for(let i=targets.length-1;i>=0;i--)if(inside(x,y,targets[i].polygon))return targets[i];
+export function hitTest(targets, x = PROFILE.width / 2, y = PROFILE.height / 2, margin = 0) {
+  for (let i = targets.length - 1; i >= 0; i--) {
+    const polygon = margin ? inflate(targets[i].polygon, margin) : targets[i].polygon;
+    if (inside(x, y, polygon)) return targets[i];
+  }
   return null;
+}
+
+// Screen-space tolerance around a projected target. Vertices move outward from
+// the centroid, so a small margin only widens the settled edge; it cannot
+// reorder targets or pick up geometry that failed to project.
+export function inflate(polygon, margin) {
+  if (!margin || !polygon || polygon.length < 3 || polygon.some(p => !p)) return polygon;
+  let cx = 0, cy = 0;
+  for (const p of polygon) { cx += p[0]; cy += p[1]; }
+  cx /= polygon.length; cy /= polygon.length;
+  return polygon.map(([x, y]) => {
+    const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy) || 1;
+    return [x + (dx / d) * margin, y + (dy / d) * margin];
+  });
 }
 export function tableCells() {
   const cells=[];

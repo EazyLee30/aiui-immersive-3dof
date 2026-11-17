@@ -54,7 +54,7 @@ python3 "$SKILL_DIR/scripts/init_project.py" ./my-spatial-scene \
   --name "My Spatial Scene"
 ```
 
-The initializer creates a fresh AIUI source directory with a forward portal, a genuinely horizontal pad, full-pose calibration, a swipe-only menu and a bundled OFL pixel font. It refuses to overwrite an existing directory. The 480×352 monochrome profile is a reference configuration; adapt it to the actual target.
+The initializer creates a fresh AIUI source directory with a forward portal, a genuinely horizontal pad, full-pose calibration, a swipe-only menu, a bundled OFL pixel font, labels fitted to their projected quads and an optional two-slot save. It refuses to overwrite an existing directory. The 480×352 monochrome profile is a reference configuration; adapt it to the actual target.
 
 It does not install packages, touch a device, create a cloud agent or publish an app. The starter contains no finished character art, music engine or persistence claim.
 
