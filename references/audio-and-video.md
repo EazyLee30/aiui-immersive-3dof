@@ -1,5 +1,7 @@
 # Sound, recording and presentation
 
+For live playback stalls, worker DSP, PCM buffering or native audio continuity measurements, use [Native performance](native-performance.md). This document covers capture and presentation; an offline sound check cannot validate a device's live audio path.
+
 ## Choose and label the evidence source
 
 | Output | What it proves |

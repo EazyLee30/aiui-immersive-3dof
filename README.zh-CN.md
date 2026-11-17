@@ -2,7 +2,7 @@
 
 <p align="center"><a href="README.md">English</a> · <strong>简体中文</strong> · <a href="README.zh-TW.md">繁體中文</a></p>
 <p align="center">
-  <img src="docs/assets/badges/version.svg" alt="Skill 版本 1.0.0">
+  <img src="docs/assets/badges/version.svg" alt="Skill 版本 1.1.0">
   <img src="docs/assets/badges/platform.svg" alt="平台：Rokid AIUI">
   <img src="docs/assets/badges/locales.svg" alt="英文、简体中文、繁体中文">
   <img src="docs/assets/badges/private.svg" alt="私有仓库">
@@ -68,8 +68,12 @@ python3 "$SKILL_DIR/scripts/init_project.py" ./my-spatial-scene \
 | **02 — 分配交互** | [IMU、镜腿手势与生命周期](references/input-lifecycle.md) |
 | **03 — 打磨画面** | [Blender 烘焙、中文像素字与透明图标](references/art-and-typography.md) |
 | **04 — 让声音同步** | [真机录制、离线渲染与音画同步](references/audio-and-video.md) |
-| **05 — 验证行为** | [ADB 与真机验收](references/device-verification.md) · [实测经验](references/field-notes.md) |
+| **05 — 验证行为** | [原生内存、换景与音频优化](references/native-performance.md) · [ADB 真机验收](references/device-verification.md) · [实测经验](references/field-notes.md) |
 | **06 — 完成交付** | [Studio 上传、提审与发布](references/aiui-release.md) |
+
+### 保留完整体验，约束资源增长
+
+新增[原生性能手册](references/native-performance.md)，沉淀 USB 真机验证过的有限图片池、共享几何、固定内存 Worker 合成、实际 PCM 预充和生命周期清理。明确区分图片估算与原生内存、应用计数与音频出口欠载，以及缓冲连续性与操作延迟。[性能记录模板](assets/templates/performance-evidence.json)保留测量口径与未知项。数值是调参案例；起始工程不附带原项目音乐引擎。
 
 ### 可以直接复用的工具
 
@@ -95,7 +99,7 @@ node scripts/inspect_media.mjs /path/to/demo.mp4 --require-audio
 
 最后一条命令会拒绝没有音轨或全静音的视频。流信息与峰值检查不能代替试听，也不能单独证明感知上的音画同步。具体执行结果见 [验证记录](docs/verification.md)。
 
-发布说明覆盖提交审核、等待审核和正式上线，但原项目的已完成证据止于云端草稿，没有冒充商店上架。本 skill 保留这个边界，并按用户当前明确要求推进到相应状态。
+发布说明覆盖提交审核、等待审核和正式上线。原项目最近一次更新把优化包保存到既有智能体的调试版，旧商店版保持已上架。上传与发布仍是不同状态；通用起始工程不因此获得商店发布或真机性能保证。
 
 ### 范围与来源
 

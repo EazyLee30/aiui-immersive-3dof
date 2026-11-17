@@ -2,7 +2,7 @@
 
 <p align="center"><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a></p>
 <p align="center">
-  <img src="docs/assets/badges/version.svg" alt="Skill version 1.0.0">
+  <img src="docs/assets/badges/version.svg" alt="Skill version 1.1.0">
   <img src="docs/assets/badges/platform.svg" alt="Platform: Rokid AIUI">
   <img src="docs/assets/badges/locales.svg" alt="English, Simplified Chinese, Traditional Chinese">
   <img src="docs/assets/badges/private.svg" alt="Private repository">
@@ -68,8 +68,12 @@ Add `--font-locale zh-TW` for Taiwan Traditional-Chinese glyph forms; the defaul
 | **02 — Own the input** | [IMU, temple gestures and lifecycle](references/input-lifecycle.md) |
 | **03 — Shape the image** | [Blender baking, CJK typography and alpha-safe icons](references/art-and-typography.md) |
 | **04 — Make it audible** | [Device capture, offline rendering and sound synchronization](references/audio-and-video.md) |
-| **05 — Prove the behavior** | [ADB and device verification](references/device-verification.md) · [Field notes](references/field-notes.md) |
+| **05 — Prove the behavior** | [Native memory, scene and audio optimization](references/native-performance.md) · [ADB verification](references/device-verification.md) · [Field notes](references/field-notes.md) |
 | **06 — Deliver deliberately** | [Studio upload, review and release](references/aiui-release.md) |
+
+### Keep the full experience, bound the work
+
+The [native performance guide](references/native-performance.md) adds a USB-tested workflow for finite image pools, shared geometry, fixed-memory worker synthesis, actual PCM prefill and lifecycle cleanup. It separates native memory from image estimates, sink continuity from app counters, and buffering from instant response. The [performance record](assets/templates/performance-evidence.json) keeps measurement scope and unknowns explicit. Reference numbers are tuning examples; the starter does not bundle the source application's music engine.
 
 ### Tools worth keeping
 
@@ -95,7 +99,7 @@ node scripts/inspect_media.mjs /path/to/demo.mp4 --require-audio
 
 The last command intentionally fails for a silent film or an absent audio track. Stream checks cannot replace listening or prove perceptual synchronization. See the [verification record](docs/verification.md) for what this repository actually exercised.
 
-The documented publication path covers submission, review and going live. The originating case reached a saved cloud draft, not a verified store listing. The skill carries that boundary forward and performs only the state requested by the user.
+The documented publication path covers submission, review and going live. The latest source-project update saved an optimized debug package on the existing agent while its older store version remained live. Upload and publication remain distinct; the generic starter has no store release or device-performance guarantee.
 
 ### Scope and provenance
 

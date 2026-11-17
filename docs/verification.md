@@ -2,6 +2,18 @@
 
 Date: 2026-11-15. This record concerns the reusable skill and its generic starter, not certification of a new physical-device product.
 
+## 2026-11-17 · v1.1.0 performance guide
+
+Added a conditional [native performance route](../references/native-performance.md) and a nullable [performance evidence template](../assets/templates/performance-evidence.json). Source evidence was checked against the final USB acceptance report and the executing renderer, Page, PCM transport and Worker code, rather than earlier failed candidates. No source-project runtime code, raw logs, art, user saves or agent/device identifiers were copied into the skill.
+
+The new route covers finite decoded-image ownership, shared projection geometry, fixed-memory Worker DSP with a Page-owned player, bounded RPC/PCM queues, confirmed versus predicted clocks, actual prefill, hide/unload cleanup and same-identity clean handover. The 600ms example is explicitly paired with its measured edit-latency cost. It records native sound continuity separately from acoustic evidence and preserves the full-product memory/FPS limits.
+
+Validation for this documentation/template update: **17/17 existing behavior/helper tests passed**, the skill-creator validator passed, the package/link/privacy-pattern checker passed for **51 files**, and `git diff --check` passed. The generic starter code is unchanged; this run did not repeat official AIX or native device checks and does not imply that the starter now contains the source application's optimized music engine. The original starter's official check is recorded below.
+
+English, Simplified Chinese and Traditional Chinese READMEs plus the version badge now identify skill v1.1.0. Studio documentation distinguishes the newer optimized debug upload from an older already-live store version and explains comparing the downloaded cloud package with the tested local artifact.
+
+An independent planning pass used a different 12-scene app with 220 MiB estimated RGBA, unknown firmware and no native audio evidence. It correctly deferred cache sizing, disposal strategy and buffer duration pending measurements, and did not equate zero app underruns with sound continuity. It identified an ambiguous helper scope: the entrypoint now explicitly says this repository's tests/package checker do not validate the user's AIX. Native Worker/player API details still require the target's installed contracts. This was a read-only planning check, not a new device run.
+
 ## Executed locally
 
 Environment: Node.js 24.15.0, Python 3.13.3, official `@yodaos-pkg/aix-cli` 0.11.0, installed FFmpeg/ffprobe. The repository declares Node 20+ and has no npm runtime dependency installation step.

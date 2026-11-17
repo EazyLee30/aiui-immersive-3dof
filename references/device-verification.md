@@ -4,6 +4,8 @@ Record the actual device model, display mode, host/Ink version and connection me
 
 ## Before installation
 
+If the task forbids duplicate launch entries, inspect the intended agent identity before `install`: a local package UUID can register another spoken-name match even when the cloud agent already exists. Reuse the authorized test/cloud identity; record registry IDs before/after locally, without copying them into this reusable repository. Upload permission does not require installing the uploaded source under a second local ID.
+
 Run the project's own focused checks, then official `aix check`. Inspect the packed archive with `aix list` and compare a source manifest. Ensure routes, font/OFL notice, scenes, icons and audio are present, and that preview dependencies, private logs and nested `.aix` caches are absent. Keep source version, cloud debugging version and public store version as separate fields.
 
 Portable commands, after checking current CLI help:
@@ -35,6 +37,8 @@ Avoid broad destructive log clearing. Capture relevant bounded logcat output, fi
 Start with high-value behavior: neutral forward calibration; left/right/up/down/roll; every actionable surface; blank click; menu open, scroll, head movement, confirm and back; pause/resume; background/foreground; sensor loss; asynchronous late loads; cleanup. Tests should exercise behavior, not search for matching implementation text.
 
 ## Measure what the hardware actually did
+
+For memory growth, scene/tempo stalls or audio dropouts, follow [Native performance](native-performance.md). It distinguishes decoded estimates from native/host memory, actual sink underruns from application counters, cold loads from cache hits and prefill waits, and a benchmark package from a clean handover. Use the optional [performance evidence record](../assets/templates/performance-evidence.json) for a substantial optimization task.
 
 Log sample freshness, rendered FPS, average/worst frame draw time, active scene, texture count and bounded audio node count. Report observed ranges and conditions. A peak 30 fps during one static interval is not sustained performance across all moving-head scenes. Desktop FPS is not native evidence.
 

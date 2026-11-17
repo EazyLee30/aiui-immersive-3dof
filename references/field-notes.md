@@ -10,6 +10,12 @@ The source project was a fixed-eye AIUI music toy built and tested in November 2
 | A “desk” appeared as an inclined card | Model constant-height world geometry and derive downward viewing angle |
 | Dense per-face clipping/transforms reduced native Canvas frame rate | Measure draw cost; a panorama approximation can be a justified target-specific fallback |
 | Runtime notes accumulated too many audio sources | Bound voice/node lifetime; test cancellation and teardown under long runs |
+| Smaller JS image ownership counters coexisted with growing native memory | Measure native residency; bounded decode reuse may be better than repeated eviction when disposal is ineffective |
+| Cold decode yields remained on every cache hit | Keep real decode cooperative, but remove unnecessary event-loop trips from native-work-free hits |
+| App audio counters stayed clean while the sink starved | Track same native audio-track underrun deltas and consumed frames, not only scheduler counters |
+| First `onCanplay` fired below the native startup buffer threshold | Wait for actual appended PCM; pair readiness with a measured prefill watermark |
+| A Worker could exchange messages but lacked native audio support | Keep supported player ownership in the Page; move only pure synthesis to the Worker |
+| Larger prefill improved continuity but delayed musical edits | Measure the queue/latency tradeoff and tune per product; 600ms is not a universal default |
 | Offline audio and video used different notions of pause/dwell time | Share a deterministic action timeline and actual audio-derived frame clock |
 | A pause/clear action looked correct but the MP4 had no audio stream | Verify encoded streams and audible content before uploading |
 | Both sync and async storage returned `lock() not supported` | Test persistence on target; degrade honestly to session-only state |
@@ -22,7 +28,7 @@ The source project was a fixed-eye AIUI music toy built and tested in November 2
 
 This repository's starter and helpers have automated math/input/media checks and an official AIX static check recorded in the repository verification note. That does not establish wearer comfort, physical touch mapping or device performance for this new generic starter. The originating application supplied physical long-hold feedback, IMU logs and observed frame-rate samples; those do not transfer to a new build automatically.
 
-The workflow includes store submission/publication instructions, but the originating agent was saved as a draft. Document this limit rather than describing unperformed publishing as accomplished.
+The initial skill release had only draft evidence. A later Studio observation showed the source application's older store version live and a newer optimized debug upload saved; those remain separate states. The generic starter has not been published or device-certified. Detailed sanitized optimization evidence and its limits are in [Native performance](native-performance.md).
 
 ## Sources and refresh points
 

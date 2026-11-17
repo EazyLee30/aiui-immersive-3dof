@@ -1,6 +1,6 @@
 ---
 name: aiui-immersive-3dof
-description: Build and deliver immersive fixed-eye 3DoF experiences for Rokid AIUI, including spatial scenes, IMU and temple input, CJK pixel typography, device verification, synchronized audiovisual demonstrations, and authorized Studio upload or store release. Use for immersive AIUI projects rather than ordinary flat widgets or positional 6DoF applications.
+description: Build, optimize and deliver immersive fixed-eye 3DoF experiences for Rokid AIUI, including spatial scenes, IMU and temple input, CJK pixel typography, native memory and audio profiling, synchronized demonstrations, and authorized Studio upload or store release. Use for immersive AIUI projects rather than ordinary flat widgets or positional 6DoF applications.
 ---
 
 # AIUI Immersive 3DoF
@@ -16,6 +16,7 @@ Turn a spatial idea into an inspectable AIUI application, a truthful demonstrati
 | IMU, temple gestures, menu, cleanup | [Input and lifecycle](references/input-lifecycle.md) |
 | Blender, atlases, pixel fonts, icons, mono/color appearance | [Art and typography](references/art-and-typography.md) |
 | Actual recording or offline video with synchronized sound | [Audio and video](references/audio-and-video.md) |
+| Memory growth, scene/tempo stalls, audio dropouts, USB stress tests | [Native performance](references/native-performance.md) |
 | ADB, package checks, performance, acceptance | [Device verification](references/device-verification.md) |
 | Studio creation, icon/material uploads, review, release | [AIUI release](references/aiui-release.md) |
 | Interpret a failure or distinguish evidence levels | [Field notes](references/field-notes.md) |
@@ -52,13 +53,21 @@ Read the actual host trace. One tested Glasses 2 host delivered a physical long 
 
 ## Build for the real image and sound path
 
-Keep Blender sources, exported runtime assets and presentation media separate. Preserve the bake eye, projection/FOV, crop UVs, alpha, frame timing and color transform as data. Decode assets once, release superseded/late decodes, and profile the actual device before adding per-frame clipping, transformations or allocations.
+Keep Blender sources, exported runtime assets and presentation media separate. Preserve the bake eye, projection/FOV, crop UVs, alpha, frame timing and color transform as data. Give decoded assets explicit ownership and a measured cache budget; dispose superseded/late results when they have no shared owner. Profile the actual device before adding per-frame clipping, transformations or allocations.
 
 Register and package a licensed pixel font. Verify Simplified and Traditional Chinese glyph coverage, actual 12 px rendering, punctuation and truncation. Do not assume CSS registration changes Canvas text, or that a bitmap-looking font remains sharp at arbitrary scales.
 
 Use actual audio time for music-driven animation. In an offline demo, execute one deterministic action timeline for both audio and visuals, including pauses, edits, randomness, tempo, volume and any dwell threshold. In a device recording, prove whether audio was captured; do not assume an MP4 contains it.
 
 For store icons, inspect transparency on light and dark backgrounds. Remove unintended exterior black wedges without flattening alpha. If the task calls for bitmap generation/editing, use the available image-generation workflow and save the result in the project.
+
+## Optimize without losing the experience
+
+For performance work, read [Native performance](references/native-performance.md). Preserve scene coverage, art, sound and interaction unless the user authorizes a tradeoff. Separate compressed package bytes, estimated decoded RGBA, native allocations and whole-host PSS. A counter decrement or missing `close()` is not proof of native reclamation.
+
+Prefer bounded ownership over repeated reconstruction: a measured finite image pool, reusable world geometry and scratch buffers, and an audio lifetime independent of scene/tempo edits. When the target needs worker-generated PCM, keep one native player in its supported host context, bound work/messages/buffers, and wait for actual prefill before playback or heavy scene work. Tune buffering with its control latency visible; do not treat the reference project's 600ms setting as a universal default.
+
+Verify repeated scene cycles and edits with native memory and audio-track evidence, restore the latest user state, then test a clean package without benchmark injection. Reuse the authorized existing agent identity; local testing must not silently create another voice entry. Report the tested duration, memory range, frame range and audio evidence level instead of claiming zero leaks, constant FPS or audible perfection.
 
 ## Verify the requested result
 
@@ -72,6 +81,8 @@ node scripts/check_package.mjs
 python3 scripts/asset_manifest.py /absolute/agent-source --output /absolute/evidence/assets.json
 node scripts/inspect_media.mjs /absolute/demo.mp4 --require-audio
 ```
+
+`tests/*.test.mjs` and `scripts/check_package.mjs` validate this skill repository and its starter, not the user's AIX. Run the target project's checks and official `aix check`/archive inspection separately; the asset-manifest helper accepts that project's source directory.
 
 Use [evidence](assets/templates/evidence.json), [bake metadata](assets/templates/bake-contract.json) and [release record](assets/templates/release-record.json) when those artifacts help the task. Replace example fields with observations, not assumptions. Do not require a full ceremony for a small icon or copy edit.
 

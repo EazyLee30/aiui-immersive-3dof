@@ -2,7 +2,7 @@
 
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <strong>繁體中文</strong></p>
 <p align="center">
-  <img src="docs/assets/badges/version.svg" alt="Skill 版本 1.0.0">
+  <img src="docs/assets/badges/version.svg" alt="Skill 版本 1.1.0">
   <img src="docs/assets/badges/platform.svg" alt="平台：Rokid AIUI">
   <img src="docs/assets/badges/locales.svg" alt="英文、簡體中文、繁體中文">
   <img src="docs/assets/badges/private.svg" alt="私人儲存庫">
@@ -68,8 +68,12 @@ python3 "$SKILL_DIR/scripts/init_project.py" ./my-spatial-scene \
 | **02 — 分配互動** | [IMU、鏡腿手勢與生命週期](references/input-lifecycle.md) |
 | **03 — 打磨畫面** | [Blender 烘焙、中文像素字與透明圖示](references/art-and-typography.md) |
 | **04 — 讓聲音同步** | [實機錄製、離線算繪與聲畫同步](references/audio-and-video.md) |
-| **05 — 驗證行為** | [ADB 與實機驗收](references/device-verification.md) · [實測經驗](references/field-notes.md) |
+| **05 — 驗證行為** | [原生記憶體、換景與音訊最佳化](references/native-performance.md) · [ADB 實機驗收](references/device-verification.md) · [實測經驗](references/field-notes.md) |
 | **06 — 完成交付** | [Studio 上傳、送審與發布](references/aiui-release.md) |
+
+### 保留完整體驗，約束資源增長
+
+新增[原生效能手冊](references/native-performance.md)，整理 USB 實機驗證過的有限圖片池、共用幾何、固定記憶體 Worker 合成、實際 PCM 預填與生命週期清理。明確區分圖片估算與原生記憶體、應用計數與音訊輸出欠載，以及緩衝連續性與操作延遲。[效能紀錄範本](assets/templates/performance-evidence.json)保留測量口徑與未知項。數值是調參案例；起始專案不附帶原專案音樂引擎。
 
 ### 可以直接重複使用的工具
 
@@ -95,7 +99,7 @@ node scripts/inspect_media.mjs /path/to/demo.mp4 --require-audio
 
 最後一條命令會拒絕沒有音軌或全靜音的影片。串流資訊與峰值檢查不能代替試聽，也不能單獨證明感知上的聲畫同步。實際執行結果見 [驗證紀錄](docs/verification.md)。
 
-發布說明涵蓋提交審核、等待審核與正式上線，但原專案的已完成證據止於雲端草稿，沒有冒充商店上架。本 skill 保留此邊界，並依使用者目前明確要求推進至對應狀態。
+發布說明涵蓋提交審核、等待審核與正式上線。原專案最近一次更新將最佳化套件儲存至既有智慧體的偵錯版，舊商店版保持已上架。上傳與發布仍是不同狀態；通用起始專案不因此獲得商店發布或實機效能保證。
 
 ### 範圍與來源
 
