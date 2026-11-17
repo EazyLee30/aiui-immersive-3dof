@@ -9,8 +9,7 @@ semantics; this page is about how the whole application is assembled.
 
 ## The shell
 
-One page, one canvas, one loop, one audio owner. Every other module is a pure function or an object the page
-owns. If two modules each own a timer, a decoder or a player, the lifecycle will leak.
+The starter uses one Page, one Canvas and one render loop. A music app can add one owner per audio stream. Keep the audio scheduler, save debounce and render loop separate where they have different deadlines, and give each an owner responsible for cleanup.
 
 ```
 sensor ──► pose ──► view matrix A,b ──► renderer ──► {targets, hit, angles}
@@ -49,30 +48,30 @@ The map is by role, not by filename: the starter carries the same roles as `spat
 
 ```text
 tick(now):
-  if !visible || dead || !ctx || !settled: return          # settled = restore done, not a blank freeze
+  if !visible || dead || !ctx: return
+  if !settled: submitLoadingFrame(); return
   pose → A,b                (manual mode substitutes a fixed A)
-  {targets, hit} = render(ctx, state, audio, A, now)       # one draw, one hit test, same vertices
-  if menu:        reset gaze targets (renderer already returned none)
-  elif fresh(now): updateGaze(hit) → maybe action
+  {targets, hit, near, submitted} = render(ctx, state, audio, A, now)
+  if menu:        reset gaze targets (renderer returned none)
+  elif fresh(now): updateGaze(hit, near, submitted) → maybe action
   else:           reset gaze
   action → activate(): edit → audio.sync(changed) → store.save() when durable
   every 10 s: log one perf line (fps, draw ms, max gap, late frames, decoded MiB, underruns)
 ```
 
-Cadence is `setTimeout(max(1, 33 - elapsed))`, not `requestAnimationFrame`, and never one timer per module.
-Reference values: 480×352, focal 1000 (≈27° horizontal), 33 ms tick, 400 ms pose freshness, 100 ms focus
+The starter uses `setTimeout(max(1, 33 - elapsed))`. Select the render cadence from the APIs and frame budget verified on the target. Use a monotonic clock for elapsed times where available.
+Reference values are 480×352, focal 1000 (≈27° horizontal), 33 ms tick, 400 ms pose freshness, 100 ms focus
 stability, 850 ms dwell, 650 ms long hold.
 
 Three of these contracts are implemented in the starter rather than only described here:
 
 | Contract | Starter implementation | Test that holds it |
 | --- | --- | --- |
-| Draw/hit parity, gaze guards, painted gate, edge grace | `assets/starter/lib/input.js` | `tests/starter-framework.test.mjs`, `tests/spatial-input.test.mjs` |
+| Draw/hit parity, gaze guards, Canvas submission gate, edge grace | `assets/starter/lib/input.js` | `tests/starter-framework.test.mjs`, `tests/spatial-input.test.mjs` |
 | Label fitted to a projected quad | `assets/starter/lib/text.js` | `tests/starter-framework.test.mjs` |
 | Dual-slot, verified persistence | `assets/starter/lib/store.js` | `tests/starter-framework.test.mjs`, `tests/starter-page.test.mjs` |
 
-The starter page wires all three: it restores before the first real frame, calls `painted()` after the flush,
-passes the enlarged hit to the gaze machine, and flushes on hide/unload.
+The starter presents a loading frame and locks edits until restore settles. It calls `painted()` after submitting a Canvas draw, gives exact and enlarged hits to the gaze machine, and requests a storage flush on hide or unload.
 
 ## Contracts
 
@@ -87,19 +86,15 @@ before touching state. A page that hides during a scene load must not publish it
 
 ### 2. Sensor input degrades visibly
 
-Absolute orientation first, gyroscope as a gap filler with unit inference and a plausibility cap on `dt`.
-If no reading arrives within ~1.8 s, enter a manual/keys mode and say so in the HUD. Never fabricate a pose,
-never keep an anchor after a sensor restart, and refuse recenter on a stale sample.
+The starter consumes absolute orientation and rejects stale world selection and recentering. Add a manual control path if the application must support devices without usable IMU readings. If a target needs gyro fusion, verify units, reference frames and timing before integrating. Invalidate the anchor if sensor restart changes the reference frame.
 
 ### 3. Scene pipeline
 
 - one native decode in flight; yield to the event loop between decodes so audio feeding keeps its deadline
 - publish background + neutral pose first, then fill the remaining poses; no low-resolution fallback
 - an epoch token cancels superseded loads; a failed load keeps the last published frame visible
-- a fixed, package-derived image pool (reference: 41 images) beats evict-and-redecode; cap it and throw if a
-  new source is not in the set
-- `hide`/`unload`/scene handover close bitmaps and clear the pool; report `decodedBytes` as an RGBA estimate,
-  never as measured native memory
+- if the asset set fits measured native headroom, reuse a bounded pool across scene handoffs. Scope it to known packaged assets and a measured decoded byte budget. If it will not fit, choose a loading or eviction policy with verified disposal behavior
+- at scene handoff release the old scene's references and keep shared pool entries available for reuse. Dispose pool-owned bitmaps when the renderer owning the pool is destroyed. Choose hide/show retention from host behavior and memory measurements. Report `decodedBytes` as an RGBA estimate. See [Native performance](native-performance.md)
 
 ### 4. Draw and hit share vertices
 
@@ -113,7 +108,7 @@ overflows horizontally *and* vertically. See `assets/starter/lib/text.js`.
 
 ### 5. Mode owns input
 
-A frame-locked menu returns zero gaze targets and the loop skips gaze updates; scroll and index change only on
+A swipe-controlled menu returns zero gaze targets and the loop skips world selection. Scroll and index change only on
 synthetic swipe actions. Mode changes reset candidate, focus, latch and progress. Consume the release that
 follows a long hold, and deduplicate host repeats without merging distinct swipes.
 
@@ -122,30 +117,24 @@ Dwell needs four separate guarantees, and dropping any one of them makes the rin
 - a pose older than ~250 ms, or a frame gap that long, restarts the timer instead of completing it;
 - a brief edge miss may hold the same candidate, but the held time is subtracted, so tolerance never shortens
   the dwell;
-- with a painted gate, only a frame that reached the display may activate;
-- the latch requires looking away before the same target can fire again.
+- the submission gate requires a successful Canvas `flush()` call for the current draw. Exact hit is required for a single tap;
+- a stall or stale sample clears progress without rearming an already triggered target. A valid look-away re-arms it.
 
-`assets/starter/lib/input.js` implements all four; test them after any change to the loop cadence.
+`assets/starter/lib/input.js` implements all four. Use a presentation signal or physical observation when the task needs proof that a frame reached the display.
 
 ### 6. Audio has one owner
 
-The page constructs one player; the worker returns raw PCM (reference: 44.1 kHz mono s16) and never touches
+If measured playback benefits from worker synthesis, construct one supported player for the stream in the Page. The worker returns raw PCM (reference: 44.1 kHz mono s16) and never touches
 audio APIs. Feed on a bounded pool of preallocated blocks, submit ~200 ms per RPC, and require an actual
 prefill (reference: 600 ms) before `play()`. Native `currentTime` arrives in coarse IPC batches: use it as the
 authority for ownership and stall detection, interpolate for visuals, and predict for feeding with a ceiling
-(reference: 300 ms). Pattern, tempo and volume edits apply to unscheduled audio only.
+(reference: 300 ms). Pattern, tempo and volume edits apply to unscheduled audio only. Size the queue against the next product's latency and stability needs, following [Native performance](native-performance.md).
 
 ### 7. Persistence
 
-A small explicit schema, validated on load and on save; checksum plus generation; two slots so an interrupted
-write leaves the previous commit intact; debounce ~350 ms with a ~900 ms ceiling; `flush()` before exit and
-refuse to exit silently if the flush failed. Restore before the first real frame and draw a loading frame
-instead of a black scene.
+A small explicit schema, validated on load and save, keeps the checksum and generation meaningful. Treat missing files, invalid records and unreadable files as different states. Two genuinely missing slots start a fresh save. An invalid slot can fall back to a valid one. When a read fails or there is no intact record, preserve the files and explain that the current session cannot write.
 
-`assets/starter/lib/store.js` is that minimum: alternate slots, `close()` then readback, generation check,
-coalesced saves, and an explicit failure when OPFS or the payload is unusable. A save is never acknowledged
-before the readback matches. Add a migration path when the schema changes; a checksum match proves integrity,
-not compatibility.
+`assets/starter/lib/store.js` alternates slots and checks the generation and payload after close and readback. Use an idempotent validator or normalizer. Coalesce edits with a bounded checkpoint delay. Surface asynchronous save failures in a persistent status. For the starter's explicitly handled back action, wait for the save before requesting host close. After repeated failure, report the error and let the user choose whether to leave. Hide and unload can request a flush, and their ability to keep a Page alive for the write depends on the host. Verify a real close and reopen on the target. Add a migration path when the schema changes.
 
 ## Directory skeleton
 

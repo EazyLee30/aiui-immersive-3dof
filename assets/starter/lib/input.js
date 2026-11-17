@@ -9,21 +9,27 @@ import {normalizeQuaternion} from './spatial.js';
  *    because a stall is not evidence of continuous looking;
  *  - an enlarged hit may hold the previous target through a brief edge wobble,
  *    but time spent there is subtracted, so tolerance never shortens the dwell;
- *  - with `requirePainted`, a target is only activated by a frame that was
- *    actually presented since the previous evaluation.
+ *  - with `requirePainted`, activation requires a submitted Canvas draw;
+ *  - a gap clears settling progress, but only a valid look-away re-arms dwell.
  */
 export function createInput({freshMs=400,focusMs=100,dwellMs=850,visibleRows=3,requirePainted=false,poseGapMs=250,graceMs=120}={}) {
   const s={q:[0,0,0,1],anchor:null,readingAt:null,menu:false,menuIndex:0,menuTop:0,
     candidate:null,focus:null,since:0,latched:null,progress:0,dwell:false,
-    lastNow:0,painted:false,miss:0};
+    lastNow:null,painted:false,exactHit:null,miss:0};
   const items=()=>['continue','recenter','dwell'];
   const fresh=now=>s.readingAt!==null && now>=s.readingAt && now-s.readingAt<freshMs;
-  function reset(){s.candidate=null;s.focus=null;s.latched=null;s.progress=0;s.miss=0;}
+  function resetProgress(){s.candidate=null;s.focus=null;s.exactHit=null;s.progress=0;s.miss=0;}
+  function reset(){resetProgress();s.latched=null;s.lastNow=null;s.painted=false;}
   function close(){s.menu=false;reset();}
   return {
     state:s,items,fresh,
-    sample(q,now){const value=normalizeQuaternion(q);if(!value||!Number.isFinite(now))return false;s.q=value;s.readingAt=now;if(!s.anchor)s.anchor=value.slice();return true;},
-    /** Call after the frame reached the display; harmless when not required. */
+    sample(q,now){
+      const value=normalizeQuaternion(q);
+      if(!value||!Number.isFinite(now)||(s.readingAt!==null&&now<s.readingAt))return false;
+      if(s.readingAt!==null&&now-s.readingAt>poseGapMs)resetProgress();
+      s.q=value;s.readingAt=now;if(!s.anchor)s.anchor=value.slice();return true;
+    },
+    /** Call after the Canvas draw was submitted with flush(). */
     painted(){s.painted=true;},
     open(){s.menu=true;s.menuIndex=0;s.menuTop=0;reset();},
     close,
@@ -35,17 +41,19 @@ export function createInput({freshMs=400,focusMs=100,dwellMs=850,visibleRows=3,r
      * @param near id under the enlarged target area, or null
      */
     target(id,now,near=null){
-      if(s.menu||!fresh(now)){reset();s.painted=false;return null;}
       const painted=!requirePainted||s.painted;s.painted=false;
-      const dt=s.lastNow?Math.max(0,now-s.lastNow):0;s.lastNow=now;
-      if(dt>poseGapMs||now-s.readingAt>poseGapMs){reset();return null;}
+      const dt=s.lastNow===null?0:now-s.lastNow;s.lastNow=now;
+      s.exactHit=null;
+      if(s.menu||!fresh(now)||dt<0||dt>poseGapMs||now-s.readingAt>poseGapMs){resetProgress();return null;}
       if(id!==s.candidate){
         // Hold the settling target across a brief edge miss without granting time.
         if(id===null&&near&&near===s.candidate&&s.miss+dt<=graceMs){s.miss+=dt;s.since+=dt;return null;}
-        s.candidate=id;s.since=now;s.focus=null;s.progress=0;s.miss=0;if(id!==s.latched)s.latched=null;
+        s.candidate=id;s.since=now;s.focus=null;s.progress=0;
       }
+      if(id!==s.latched&&(id!==null||near!==s.latched))s.latched=null;
       s.miss=0;
       if(!id){s.focus=null;return null;}
+      if(painted)s.exactHit=id;
       if(now-s.since>=focusMs)s.focus=id;
       s.progress=Math.min(1,(now-s.since)/dwellMs);
       if(s.dwell&&painted&&s.progress>=1&&s.latched!==id){s.latched=id;return{kind:'activate',id};}
@@ -57,15 +65,17 @@ export function createInput({freshMs=400,focusMs=100,dwellMs=850,visibleRows=3,r
         if(item==='recenter')return{kind:this.recenter(now)?'recenter':'stale'};
         s.dwell=!s.dwell;reset();return{kind:'dwell'};
       }
-      return fresh(now)&&s.focus?{kind:'activate',id:s.focus}:null;
+      const currentFrame=s.lastNow!==null&&now>=s.lastNow&&now-s.lastNow<=poseGapMs;
+      return currentFrame&&fresh(now)&&now-s.readingAt<=poseGapMs&&s.focus&&s.exactHit===s.focus
+        ?{kind:'activate',id:s.focus}:null;
     },
     back(){if(!s.menu)return false;close();return true;},
-    suspend(){s.readingAt=null;s.lastNow=0;s.painted=false;close();}
+    suspend(){s.readingAt=null;close();}
   };
 }
 
 // Host mapping is intentionally separate. Verify it on each target device.
-export function createKeys(input,{now=()=>Date.now(),setTimer=setTimeout,clearTimer=clearTimeout,onAction=()=>{},holdMs=650,suppressMs=450}={}) {
+export function createKeys(input,{now=()=>Date.now(),setTimer=setTimeout,clearTimer=clearTimeout,onAction=()=>{},onExit=()=>{},holdMs=650,suppressMs=450}={}) {
   let timer=null,down=false,longHold=false,suppressUntil=0,lastCode='',lastAt=-Infinity;
   function cancel(){if(timer!==null)clearTimer(timer);timer=null;down=false;}
   function stop(event){event.preventDefault?.();}
@@ -80,7 +90,9 @@ export function createKeys(input,{now=()=>Date.now(),setTimer=setTimeout,clearTi
         cancel();longHold=false;suppressUntil=t+320;
         // A duplicate back after closing the menu must not leak into host exit.
         if(lastCode==='handled-back'&&t-lastAt<320){stop(event);return;}
-        if(input.back()){stop(event);lastCode='handled-back';lastAt=t;}return;
+        if(input.back()){stop(event);lastCode='handled-back';lastAt=t;}
+        else onExit(event);
+        return;
       }
       if(!['Enter','ArrowUp','ArrowDown'].includes(code))return;
       stop(event);if(event.repeat)return;

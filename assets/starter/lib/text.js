@@ -62,22 +62,26 @@ export function fitQuadText(corners, width, height, {pad = 6, minScale = 0.45} =
 /** Draw one label centred in a projected quad, or nothing when it cannot fit. */
 export function drawQuadLabel(ctx, corners, text, {size = 12, color = '#9aefae', pad = 6, minScale = 0.45} = {}) {
   if (!ctx || typeof ctx.fillText !== 'function') return null;
-  const measure = typeof ctx.measureText === 'function' ? ctx.measureText(text)?.width : 0;
-  const width = Number.isFinite(measure) && measure > 0
-    ? measure
-    : Array.from(text).reduce((n, ch) => n + (ch.charCodeAt(0) > 255 ? size : size * 0.62), 0);
-  const layout = fitQuadText(corners, width, size * 1.35, {pad, minScale});
-  if (!layout) return null;
-  const cx = corners.reduce((sum, p) => sum + p[0], 0) / corners.length;
-  const cy = corners.reduce((sum, p) => sum + p[1], 0) / corners.length;
-  ctx.save?.();
-  ctx.translate(cx, cy);
-  ctx.rotate(layout.angle);
-  ctx.font = `${Math.max(1, Math.round(size * layout.scale))}px FusionPixel`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = color;
-  ctx.fillText(text, 0, 0);
-  ctx.restore?.();
-  return layout;
+  ctx.save();
+  try {
+    ctx.font = `${size}px FusionPixel`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const metrics = ctx.measureText(text);
+    if (!Number.isFinite(metrics?.width) || metrics.width <= 0) return null;
+    const bound = name => Number.isFinite(metrics[name]) ? Math.abs(metrics[name]) * 2 : 0;
+    const width = Math.max(metrics.width, bound('actualBoundingBoxLeft'), bound('actualBoundingBoxRight'));
+    const height = Math.max(size * 1.35, bound('actualBoundingBoxAscent'), bound('actualBoundingBoxDescent'));
+    const layout = fitQuadText(corners, width, height, {pad, minScale});
+    if (!layout) return null;
+    const cx = corners.reduce((sum, p) => sum + p[0], 0) / corners.length;
+    const cy = corners.reduce((sum, p) => sum + p[1], 0) / corners.length;
+    ctx.translate(cx, cy);
+    ctx.rotate(layout.angle);
+    // Scale the font we measured instead of rounding up to a new raster size.
+    if (layout.scale < 1) ctx.scale(layout.scale, layout.scale);
+    ctx.fillStyle = color;
+    ctx.fillText(text, 0, 0);
+    return layout;
+  } finally { ctx.restore(); }
 }

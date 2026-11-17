@@ -42,6 +42,12 @@ The dwell contract changed deliberately: continuity now requires pose and frame 
 a target no longer completes a ring. The existing threshold test steps at 50 ms instead; the new guard has its
 own regression test.
 
+### Follow-up corrections
+
+Review found that a read error could be treated as an empty journal and overwrite the previous save. The starter now validates payloads on restore, preserves unreadable journals and shows write failures through later IMU updates. Regression cases exercise read failures, dual-slot fallback, the loading input lock and flushing pending edits before an explicit Back request. Gaze tests cover a long frame gap with the same latched target and a tap during an edge miss.
+
+The current starter passed **40/40 tests**, the skill and package checks, and official `aix check` with zero diagnostics. Official AIX packaging and ZIP integrity also passed. Offscreen Canvas checks found zero text pixels outside the target in five roll cases, including a trial with a differently sized previous font. The Page's draw gate observes Canvas submission. Physical display timing, host back behavior and OPFS reopen on glasses still require a device run of this starter.
+
 ## Executed locally
 
 Environment: Node.js 24.15.0, Python 3.13.3, official `@yodaos-pkg/aix-cli` 0.11.0, installed FFmpeg/ffprobe. The repository declares Node 20+ and has no npm runtime dependency installation step.

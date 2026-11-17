@@ -26,7 +26,7 @@ Turn a spatial idea into an inspectable AIUI application, a truthful demonstrati
 
 Inspect the existing project and prior decisions before changing it. Record the target device/host version, viewport, coordinate conventions, scene coverage, interaction map, font choice, and requested delivery state. Use local context before asking for missing information. Use an independent project directory for a new work; preserve existing source and version snapshots.
 
-For an application rather than a single scene, start from the [application framework](references/framework.md): one page, one canvas, one loop and one audio owner, with state, saves and the scene pipeline assigned to named modules.
+For a complete app, use the [application framework](references/framework.md) to assign ownership of rendering, state, saves, scene assets and audio. The starter demonstrates one Page, Canvas and render loop.
 
 Choose the rendering method from actual target capabilities. A fixed-eye panorama plus transparent animation layers may be a good fit for limited Canvas hosts. Real-time 3D is appropriate when verified capabilities and the product's occlusion, lighting, or movement needs justify it. Do not label baked layers as real-time mesh rendering, positional tracking, or stereoscopic depth.
 

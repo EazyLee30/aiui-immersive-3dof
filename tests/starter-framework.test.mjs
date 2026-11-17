@@ -54,9 +54,19 @@ test('labelled drawing is skipped when the target cannot hold the text',()=>{
   const calls=[];const ctx={save(){},restore(){},translate(){},rotate(){},fillText(t,x,y){calls.push([t,x,y]);},measureText:t=>({width:Array.from(t).length*12}),set font(v){calls.push(['font',v]);},set fillStyle(v){},set textAlign(v){},set textBaseline(v){}};
   assert(drawQuadLabel(ctx,rect(120,60),'01',{size:12}));
   assert.equal(calls.filter(c=>c[0]==='01').length,1);
-  const before=calls.length;
+  const before=calls.filter(c=>c[0]!=='font').length;
   assert.equal(drawQuadLabel(ctx,rect(6,60),'SPATIAL / 01',{size:12}),null);
-  assert.equal(calls.length,before);
+  assert.equal(calls.filter(c=>c[0]!=='font').length,before);
+});
+
+test('quad labels measure FusionPixel and apply the fitted scale without rounding',()=>{
+  const ctx={font:'4px sans-serif',save(){},restore(){this.font='4px sans-serif';},translate(){},rotate(){},
+    measureText(){assert.equal(this.font,'12px FusionPixel'); assert.equal(this.textAlign,'center');return {width:96};},
+    scale(x,y){this.scaling=[x,y];},fillText(){assert.equal(this.font,'12px FusionPixel');}};
+  const layout=drawQuadLabel(ctx,rect(60,30),'SPATIAL / 01 0123',{pad:2});
+  assert.equal(layout.width,56);
+  assert.deepEqual(ctx.scaling,[layout.scale,layout.scale]);
+  assert.equal(ctx.font,'4px sans-serif');
 });
 
 test('hit tolerance widens the settled target without moving its centre',()=>{
@@ -88,6 +98,7 @@ function memoryStorage(files=new Map(),control={}){
     },
   });
   return {files,control,storage:{getDirectory:async()=>({getFileHandle:async(name,options={})=>{
+    if(!options.create&&control.failRead===name){control.failRead=null;throw new Error('transient I/O failure');}
     if(!options.create&&!files.has(name)){const error=new Error('NotFoundError');error.name='NotFoundError';throw error;}
     return handle(name);
   }})}};
@@ -106,7 +117,7 @@ test('save is acknowledged only after readback and survives one damaged slot',as
   assert.equal(decodeSave(files.get('spatial-save-b.json')).generation,2);
   // Damage the newest record: the loader must fall back to the older commit.
   files.set('spatial-save-b.json',files.get('spatial-save-b.json').replace('cell:1:2','cell:9:9'));
-  const reopened=createStore({storage,validate:payload});
+  const reopened=createStore({storage,validate:valid});
   const loaded=await reopened.load();
   assert.equal(loaded.ok,true);assert.equal(loaded.data.cells[0],'cell:0:0');assert.equal(loaded.recovered,true);assert.equal(loaded.generation,1);
 });
@@ -119,7 +130,7 @@ test('an interrupted write leaves the previous commit loadable and reports failu
   const result=await store.save(payload(['cell:2:2']));
   assert.equal(result.ok,false);
   assert.equal(store.metrics.failures,1);
-  const reopened=createStore({storage,validate:payload});
+  const reopened=createStore({storage,validate:valid});
   assert.deepEqual((await reopened.load()).data,payload(['cell:0:0']));
 });
 
@@ -150,6 +161,35 @@ test('missing OPFS degrades to an explicit failure instead of throwing',async()=
   assert.equal(result.ok,false);assert.match(result.error,/OPFS/);
 });
 
+test('an I/O error during restore preserves the original save and blocks writes',async()=>{
+  const name='spatial-save-a.json', original=encodeSave(payload(['cell:0:0']),8);
+  const {files,storage}=memoryStorage(new Map([[name,original]]),{failRead:name});
+  const store=createStore({storage,debounceMs:0,validate:valid});
+  assert.match((await store.load()).error,/transient I\/O/);
+  assert.equal((await store.save(payload(['cell:2:2']))).ok,false);
+  assert.equal((await store.flush()).ok,false);
+  assert.deepEqual([...files],[[name,original]]);
+  assert.equal((await createStore({storage,validate:valid}).load()).generation,8);
+});
+
+test('restore validates the payload before selecting a generation and preserves two invalid slots',async()=>{
+  const a='spatial-save-a.json',b='spatial-save-b.json';
+  const {files,storage}=memoryStorage(new Map([[a,encodeSave(payload(['cell:0:0']),8)],[b,encodeSave({cells:'broken'},9)]]));
+  assert.deepEqual(await createStore({storage,validate:valid}).load(),{ok:true,data:payload(['cell:0:0']),generation:8,recovered:true});
+  files.set(a,'corrupt');
+  const before=[...files],store=createStore({storage,debounceMs:0,validate:valid});
+  assert.match((await store.load()).error,/no intact/);
+  assert.equal((await store.save(payload(['cell:2:2']))).ok,false);
+  assert.deepEqual([...files],before);
+});
+
+test('ordinary OPFS NotFoundError starts a fresh journal without a recovery warning',async()=>{
+  const storage={getDirectory:async()=>({getFileHandle:async()=>{
+    throw new DOMException('The requested file does not exist.','NotFoundError');
+  }})};
+  assert.deepEqual(await createStore({storage}).load(),{ok:true,data:null,generation:0,recovered:false});
+});
+
 test('a long frame or stale pose breaks gaze continuity',()=>{
   const c=createInput();c.state.dwell=true;
   const step=(id,t)=>{c.sample(identity,t);return c.target(id,t);};
@@ -159,17 +199,30 @@ test('a long frame or stale pose breaks gaze continuity',()=>{
   assert.equal(c.target('a',900),null);
   assert.equal(c.state.progress,0);assert.equal(c.state.candidate,null);
   step('a',1000);step('a',1100);step('a',1200);
-  assert(Math.abs(c.state.progress-100/850)<1e-9);
+  assert(Math.abs(c.state.progress-200/850)<1e-9);
+});
+
+test('a stall resets dwell progress but never rearms a target until a valid look-away',()=>{
+  const c=createInput();c.state.dwell=true;
+  const step=(id,t)=>{c.sample(identity,t);return c.target(id,t);};
+  for(let t=1000;t<1900;t+=100)assert.equal(step('a',t),null);
+  assert.equal(step('a',1900)?.id,'a');
+  for(let t=2300;t<=3300;t+=100)assert.equal(step('a',t),null);
+  step(null,3400);
+  for(let t=3500;t<4400;t+=100)assert.equal(step('a',t),null);
+  assert.equal(step('a',4400)?.id,'a');
 });
 
 test('edge tolerance holds focus without granting dwell time',()=>{
   const c=createInput();c.state.dwell=true;
   const step=(id,t,near=null)=>{c.sample(identity,t);return c.target(id,t,near);};
-  step('a',0);step('a',400);
+  for(let t=0;t<=400;t+=100)step('a',t);
+  assert.equal(c.confirm(400)?.id,'a');
   const before=c.state.progress;
   assert.equal(step(null,450,'a'),null);
   assert.equal(c.state.candidate,'a');
   assert.equal(c.state.progress,before);
+  assert.equal(c.confirm(450),null);
   // Beyond the grace window the candidate is cleared and the ring restarts.
   step(null,700,'a');
   assert.equal(c.state.candidate,null);assert.equal(c.state.progress,0);
@@ -177,7 +230,7 @@ test('edge tolerance holds focus without granting dwell time',()=>{
   assert.equal(c.state.progress,1);
 });
 
-test('requirePainted withholds activation until a frame was presented',()=>{
+test('requirePainted withholds activation until a Canvas draw was submitted',()=>{
   const c=createInput({requirePainted:true});c.state.dwell=true;
   const step=(t)=>{c.sample(identity,t);return c.target('a',t);};
   for(let t=0;t<=900;t+=100)assert.equal(step(t),null);

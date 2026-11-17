@@ -56,7 +56,7 @@ python3 "$SKILL_DIR/scripts/init_project.py" ./my-spatial-scene \
 
 The initializer creates a fresh AIUI source directory with a forward portal, a genuinely horizontal pad, full-pose calibration, a swipe-only menu, a bundled OFL pixel font, labels fitted to their projected quads and an optional two-slot save. It refuses to overwrite an existing directory. The 480×352 monochrome profile is a reference configuration; adapt it to the actual target.
 
-It does not install packages, touch a device, create a cloud agent or publish an app. The starter contains no finished character art, music engine or persistence claim.
+Initialization copies the template. The starter demonstrates an OPFS journal and leaves character art, music and application-specific save fields to the project. Verify storage on the target device before relying on it.
 
 Add `--font-locale zh-TW` for Taiwan Traditional-Chinese glyph forms; the default is `zh-CN`. This selects a font, not an automatic translation. Both full fonts include the tested Simplified/Traditional specimen; each is about 5.1 MB. See [font provenance](docs/font-provenance.json).
 
