@@ -1,0 +1,7 @@
+Third-party components bundled in this repository retain their own licenses:
+
+- Fusion Pixel Font (assets/starter/assets/fonts/FusionPixel12.otf and
+  assets/fonts/FusionPixel12Traditional.otf) is licensed under the SIL Open
+  Font License 1.1, reproduced in assets/starter/assets/fonts/FusionPixel-OFL.txt,
+  with upstream component notices preserved under
+  assets/starter/assets/fonts/LICENSES/.
