@@ -2,6 +2,12 @@
   "name": "aiui-immersive-3dof",
   "version": "1.1.0",
   "private": true,
+  "license": "MIT",
+  "homepage": "https://github.com/EazyLee30/aiui-immersive-3dof#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EazyLee30/aiui-immersive-3dof.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=20"

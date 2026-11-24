@@ -5,7 +5,7 @@
   <img src="docs/assets/badges/version.svg" alt="Skill version 1.1.0">
   <img src="docs/assets/badges/platform.svg" alt="Platform: Rokid AIUI">
   <img src="docs/assets/badges/locales.svg" alt="English, Simplified Chinese, Traditional Chinese">
-  <img src="docs/assets/badges/private.svg" alt="Private repository">
+  <img src="docs/assets/badges/license.svg" alt="MIT License">
 </p>
 
 # AIUI Immersive 3DoF
@@ -14,7 +14,7 @@
 
 A reusable agent skill for taking a Rokid AIUI experience from spatial design to a verified release candidate: head tracking, temple controls, CJK pixel typography, Blender assets, synchronized sound and video, device evidence, and Studio delivery.
 
-Distilled from an actual fixed-eye music-toy project. Designed for the next immersive scene, not only that toy.
+Distilled from the real fixed-eye music toy **Orbit Pop (星拍游乐场)**. Designed for the next immersive scene, not only that toy.
 
 ---
 
@@ -28,11 +28,17 @@ The skill distinguishes a baked fixed-eye scene from real-time meshes; a simulat
 
 ### Install
 
-Access to this private repository is required. With GitHub CLI authenticated:
+Install via `skills` CLI or clone directly into your agent's skills directory:
+
+```sh
+npx skills add https://github.com/EazyLee30/aiui-immersive-3dof
+```
+
+Or clone manually for Codex / local skill discovery:
 
 ```sh
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-gh repo clone EazyLee30/aiui-immersive-3dof \
+git clone https://github.com/EazyLee30/aiui-immersive-3dof.git \
   "${CODEX_HOME:-$HOME/.codex}/skills/aiui-immersive-3dof"
 ```
 
@@ -106,6 +112,6 @@ The documented publication path covers submission, review and going live. The la
 
 This is an independent workflow for Rokid AIUI, not an official Rokid product or certification. It does not promise 6DoF, stereo depth, stable device FPS, unverified storage, or a future hardware release date.
 
-No source-project character models, scene textures, music samples, private screenshots, device serials, account IDs or credentials are bundled. The included [Fusion Pixel font](https://github.com/TakWolf/fusion-pixel-font) keeps its [OFL 1.1 license](assets/starter/assets/fonts/FusionPixel-OFL.txt). Original repository content is private; see [LICENSE](LICENSE). The cover is original AI-generated editorial artwork; its [design record](docs/design.md) includes the prompt and visual system.
+No source-project character models, scene textures, music samples, private screenshots, device serials, account IDs or credentials are bundled. The included [Fusion Pixel font](https://github.com/TakWolf/fusion-pixel-font) keeps its [OFL 1.1 license](assets/starter/assets/fonts/FusionPixel-OFL.txt). Original repository content is open-sourced under the [MIT License](LICENSE). The cover is original AI-generated editorial artwork; its [design record](docs/design.md) includes the prompt and visual system.
 
 <sub>Fixed eye. Clear controls. Honest evidence.</sub>

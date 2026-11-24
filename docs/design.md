@@ -5,7 +5,7 @@ The repository uses a spatial-instrument editorial language: graphite, warm ivor
 ## Assets
 
 - `assets/banner.png`: original imagegen cover, 2172×724, 3:1, full bleed. The portal/table composition communicates perpendicular spatial surfaces. It is conceptual artwork, not a screenshot or performance claim.
-- `assets/badges/*.svg`: local, editable vector badges. They report version, platform, documentation languages and repository access; none pretends to be a live CI score. Local badges avoid third-party badge-service access to a private repository.
+- `assets/badges/*.svg`: local, editable vector badges. They report version, platform, documentation languages and repository license; none pretends to be a live CI score. Local badges avoid external badge-service dependencies and stay visually consistent with the editorial cover palette.
 - The three README editions share visual rhythm and information structure. The English cover is common to all three; each README has its own localized body and navigation.
 
 | Token | Value | Role |

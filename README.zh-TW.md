@@ -5,7 +5,7 @@
   <img src="docs/assets/badges/version.svg" alt="Skill 版本 1.1.0">
   <img src="docs/assets/badges/platform.svg" alt="平台：Rokid AIUI">
   <img src="docs/assets/badges/locales.svg" alt="英文、簡體中文、繁體中文">
-  <img src="docs/assets/badges/private.svg" alt="私人儲存庫">
+  <img src="docs/assets/badges/license.svg" alt="MIT 開源授權">
 </p>
 
 # AIUI 沉浸式 3DoF
@@ -14,7 +14,7 @@
 
 一套可重複使用的 agent skill，串接 Rokid AIUI 的空間設計、IMU 頭部控制、鏡腿互動、中文像素字型、Blender 素材、有聲示範、實機驗證與平台交付。
 
-從實際音樂玩具專案中提煉，面向下一款沉浸式作品，不限定於音樂玩具。
+從實際音樂玩具專案 **星拍遊樂場（Orbit Pop）** 中提煉，面向下一款沉浸式作品，不限定於音樂玩具。
 
 ---
 
@@ -28,11 +28,17 @@
 
 ### 安裝
 
-需要擁有此私人儲存庫的存取權限。登入 GitHub CLI 後執行：
+可以直接透過 `skills` CLI 安裝，或公開複製到你的 agent skill 目錄：
+
+```sh
+npx skills add https://github.com/EazyLee30/aiui-immersive-3dof
+```
+
+或手動複製到 Codex / 本地 skill 目錄：
 
 ```sh
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-gh repo clone EazyLee30/aiui-immersive-3dof \
+git clone https://github.com/EazyLee30/aiui-immersive-3dof.git \
   "${CODEX_HOME:-$HOME/.codex}/skills/aiui-immersive-3dof"
 ```
 
@@ -106,6 +112,6 @@ node scripts/inspect_media.mjs /path/to/demo.mp4 --require-audio
 
 這是獨立的 Rokid AIUI 工作流程，不是 Rokid 官方產品或認證。不承諾 6DoF、雙目立體、穩定實機影格率、未驗證的儲存能力或未來硬體發布日期。
 
-儲存庫不包含原專案人物模型、場景貼圖、音樂取樣、私人截圖、裝置序號、帳號 ID 或憑證。隨附的 [Fusion Pixel 字型](https://github.com/TakWolf/fusion-pixel-font) 保留 [OFL 1.1 授權](assets/starter/assets/fonts/FusionPixel-OFL.txt)。原創儲存庫內容維持私人性質，見 [LICENSE](LICENSE)。封面為原創 AI 生成的編輯視覺，提示詞與設計系統見 [設計紀錄](docs/design.md)。
+儲存庫不包含原專案人物模型、場景貼圖、音樂取樣、私人截圖、裝置序號、帳號 ID 或憑證。隨附的 [Fusion Pixel 字型](https://github.com/TakWolf/fusion-pixel-font) 保留 [OFL 1.1 授權](assets/starter/assets/fonts/FusionPixel-OFL.txt)。原創儲存庫內容依據 [MIT License](LICENSE) 開源。封面為原創 AI 生成的編輯視覺，提示詞與設計系統見 [設計紀錄](docs/design.md)。
 
 <sub>固定眼位。清晰互動。真實證據。</sub>
